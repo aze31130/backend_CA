@@ -1,0 +1,12 @@
+*.suo
+*vs
+*.userosscache
+bin
+obj
+.vscode
+.DS_Store
+*.db
+*appsettings.JSON
+appsettings.Development.json
+wwwroot
+publish
