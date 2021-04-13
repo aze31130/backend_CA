@@ -22,6 +22,5 @@ namespace backend_CA.Models
         public USER_TYPE type { get; set; }
         public List<SKILLS> skills { get; set; }
         public bool isPremium { get; set; }
-
     }
 }
