@@ -4,9 +4,8 @@ namespace backend_CA.Models
 {
     public class Chat
     {
-        public int roomId { get; set; }
-        public List<Message> messageList { get; set; }
+        public int Id { get; set; }
         public int senderId { get; set; }
-        public int rereceiverId { get; set; }
+        public int receiverId { get; set; }
     }
 }

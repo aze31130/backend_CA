@@ -8,5 +8,6 @@ namespace backend_CA.Data
         public Context(DbContextOptions<Context> options) : base(options) { }
         public DbSet<User> users { get; set; }
         public DbSet<Chat> chats { get; set; }
+        public DbSet<Message> messages { get; set; }
     }
 }
