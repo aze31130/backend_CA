@@ -1,14 +1,14 @@
 ﻿namespace backend_CA.Models
 {
-    public enum SKILLS
+    public enum SKILLS : int
     {
-        POSITIVE,
-        TEAM_WORKER,
-        SOCIABLE,
-        FAST_LEARNER,
-        LEADERSHIP,
-        PROBLEM_SOLVER,
-        MOTIVATER
+        POSITIVE = 1,
+        TEAM_WORKER = 2,
+        SOCIABLE = 3,
+        FAST_LEARNER = 4,
+        LEADERSHIP = 5,
+        PROBLEM_SOLVER = 6,
+        MOTIVATER = 7
     }
     /*
      * To make sure the 2 foreign keys can be used,

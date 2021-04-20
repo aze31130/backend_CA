@@ -1,6 +1,7 @@
 ﻿using backend_CA.Data;
 using backend_CA.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,17 +19,9 @@ namespace backend_CA.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Message>>> GetChatMessages(int roomId)
+        public ActionResult<IEnumerable<Message>> GetChatMessages(int roomId)
         {
-            List<Message> messages = new List<Message> { };
-            foreach (Message m in _context.messages.ToList())
-            {
-                if (m.roomId.Equals(roomId))
-                {
-                    messages.Append(m);
-                }
-            }
-            return messages;
+            return _context.messages.ToList().FindAll(x => x.roomId.Equals(roomId));
         }
 
         [HttpPost]
