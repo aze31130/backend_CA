@@ -24,6 +24,7 @@ namespace backend_CA.Controllers
         {
             return await _context.users.ToListAsync();
         }
+
         [HttpPost]
         public async Task<ActionResult<User>> Add_User(User User)
         {

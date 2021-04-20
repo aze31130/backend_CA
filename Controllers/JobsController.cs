@@ -18,6 +18,15 @@ namespace backend_CA.Controllers
             throw new NotImplementedException();
         }
 
+        private int computeScore(int days, int fame, bool isPremium)
+        {
+            if (isPremium)
+            {
+                fame += days/2;
+            }
+            return (int)(2 * (fame ^ 3)) + days;
+        }
+
         //Function to search available jobs
         public void getJob(User user, List<Skill> researshedSKills)
         {
