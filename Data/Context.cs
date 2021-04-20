@@ -14,7 +14,7 @@ namespace backend_CA.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>().Property(x => x.type).HasConversion(v => v.ToString(), v => (USER_TYPE)Enum.Parse(typeof(USER_TYPE), v));
-            modelBuilder.Entity<Skill>().Property(x => x.type).HasConversion(v => v.ToString(), v => (SKILLS)Enum.Parse(typeof(SKILLS), v));
+            modelBuilder.Entity<Skill>().Property(x => x.skill).HasConversion(v => v.ToString(), v => (SKILLS)Enum.Parse(typeof(SKILLS), v));
         }
     }
 }
