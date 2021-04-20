@@ -19,8 +19,12 @@ namespace backend_CA.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Message>> GetChatMessages(int roomId)
+        public ActionResult<IEnumerable<Message>> GetChatMessages(int roomId, int limit)
         {
+            if (limit > 0)
+            {
+                return _context.messages.ToList().FindAll(x => x.roomId.Equals(roomId)).Take(limit).ToList();
+            }
             return _context.messages.ToList().FindAll(x => x.roomId.Equals(roomId));
         }
 
