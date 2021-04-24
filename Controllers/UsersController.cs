@@ -1,10 +1,18 @@
 ﻿using backend_CA.Data;
 using backend_CA.Models;
+using backend_CA.Services;
+using backend_CA.Utils;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace backend_CA.Controllers
@@ -13,10 +21,14 @@ namespace backend_CA.Controllers
     [Route("[controller]")]
     public class UsersController : Controller
     {
+        public IConfiguration Configuration;
+        private IUserService _userService;
         private readonly Context _context;
-        public UsersController(Context context)
+        public UsersController(Context context, IUserService userService, IConfiguration configuration)
         {
             _context = context;
+            _userService = userService;
+            Configuration = configuration;
         }
 
         [HttpGet]
@@ -25,19 +37,59 @@ namespace backend_CA.Controllers
             return await _context.users.ToListAsync();
         }
 
-        [HttpPost]
-        public async Task<ActionResult<User>> Add_User(User User)
+        [AllowAnonymous]
+        [HttpPost("register")]
+        public ActionResult<User> Register(User user)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                _userService.Register(user);
+                return Ok(new { message = "Account successfully registered !" });
             }
-            _context.users.Add(User);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetUsers", new { id = User.id }, User);
-
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.ToString() });
+            }
         }
+
+        [AllowAnonymous]
+        [HttpPost("login")]
+        public IActionResult Login(AuthenticateModel model)
+        {
+            User user = _userService.Authenticate(model.username, model.password);
+
+            if (user == null)
+            {
+                return BadRequest(new { message = "Username or password is invalid !" });
+            }
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(Configuration["Secret"]);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                    new Claim(ClaimTypes.Name, user.id.ToString()),
+                    new Claim(ClaimTypes.Role, user.adminLevel.ToString() ?? "null")
+                }),
+                Expires = DateTime.UtcNow.AddDays(7),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            var tokenString = tokenHandler.WriteToken(token);
+
+            // return basic user info and authentication token
+            return Ok(new
+            {
+                id = user.id,
+                username = user.username,
+                firstName = user.firstname,
+                lastName = user.lastname,
+                Token = tokenString
+            });
+        }
+
+
         [HttpPut("id")]
         public async Task<ActionResult> UpdateUser(int id, User user)
         {

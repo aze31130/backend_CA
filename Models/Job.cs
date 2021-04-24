@@ -1,7 +1,10 @@
-﻿namespace backend_CA.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace backend_CA.Models
 {
     public class Job
     {
+        [Key]
         public int id { get; set; }
         public string title { get; set; }
         public string description { get; set; }
