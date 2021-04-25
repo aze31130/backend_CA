@@ -49,10 +49,11 @@ namespace backend_CA.Controllers
         //Edit a Job
         //-----
         [HttpPut("edit")]
-        public ActionResult<Job> EditJob(CreateJobModel model, int jobid)
+        public ActionResult<Job> EditJob(CreateJobModel model, int jobId)
         {
-            Job editedjob = _context.jobs.FirstOrDefault();
-            editedjob.availableSlots = 4012;
+            Job editedjob = _context.jobs.ToList().Find(x => x.id == jobId);
+            int userId = GetUserId();
+            _jobService.Create(model, userId); //question pour le prof : comment récupérer les variables précédentes dans le swagger
             _context.Entry(editedjob).State = EntityState.Modified;
             _context.SaveChanges();
             return Ok();
