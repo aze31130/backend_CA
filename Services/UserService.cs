@@ -12,6 +12,7 @@ namespace backend_CA.Services
         User Authenticate(string username, string password);
         User Register(RegisterModel model);
         User GetUserById(int id);
+        bool isUserIdValid(int userId);
     }
 
     public class UserService : IUserService
@@ -22,6 +23,9 @@ namespace backend_CA.Services
             _context = context;
         }
 
+        //-----
+        //Returns the user object if the given credentials are correct
+        //-----
         public User Authenticate(string username, string password)
         {
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
@@ -42,6 +46,9 @@ namespace backend_CA.Services
             return user;
         }
 
+        //-----
+        //Registers a new user in the dabase
+        //-----
         public User Register(RegisterModel model)
         {
             if (string.IsNullOrEmpty(model.password))
@@ -74,9 +81,24 @@ namespace backend_CA.Services
             return user;
         }
 
-        public User GetUserById(int id)
+        //-----
+        //Returns the user object for a given userId
+        //-----
+        public User GetUserById(int userId)
         {
-            return _context.users.Find(id);
+            return _context.users.Find(userId);
+        }
+
+        //-----
+        //Returns true if the user id is valid
+        //-----
+        public bool isUserIdValid(int userId)
+        {
+            if (GetUserById(userId) == null)
+            {
+                return false;
+            }
+            return true;
         }
     }
 }

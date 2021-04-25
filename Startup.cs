@@ -61,6 +61,7 @@ namespace backend_CA
                 };
             });
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IChatService, ChatService>();
             services.AddControllers();
             services.AddDbContext<Context>(opt =>
             {
