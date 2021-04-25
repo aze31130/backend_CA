@@ -1,11 +1,65 @@
-﻿using backend_CA.Models;
+﻿using backend_CA.Data;
+using backend_CA.Models;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace backend_CA.Controllers
 {
-    public class JobsController
+    public class JobsController : Controller
     {
+        private readonly Context _context;
+        public JobsController(Context context)
+        {
+            _context = context;
+        }
+
+        //-----
+        //Create a Job
+        //-----
+        [HttpPost]
+        public async Task<ActionResult<Job>> CreateJob()
+        {
+            throw new NotImplementedException();
+        }
+
+        //-----
+        //Edit a Job
+        //-----
+        [HttpPut]
+        public async Task<ActionResult<Job>> EditJob()
+        {
+            throw new NotImplementedException();
+        }
+
+        //-----
+        //Remove a Job
+        //-----
+        [HttpDelete]
+        public async Task<ActionResult<Job>> RemoveJob()
+        {
+            throw new NotImplementedException();
+        }
+
+        //-----
+        //Apply to a Job
+        //-----
+        [HttpPost]
+        public async Task<ActionResult<Job>> Apply()
+        {
+            throw new NotImplementedException();
+        }
+
+        //-----
+        //List all Jobs
+        //-----
+        [HttpPost]
+        public async Task<ActionResult<IEnumerable<Job>>> GetAllAvailableJobs()
+        {
+            throw new NotImplementedException();
+        }
+
         //Function to apply to a job
         public void apply(User user, int jobId)
         {
