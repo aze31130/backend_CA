@@ -57,42 +57,48 @@ namespace backend_CA.Controllers
         [HttpPost("login")]
         public IActionResult Login(LoginModel model)
         {
-            User user = _userService.Authenticate(model.username, model.password);
-
-            if (user == null)
+            try
             {
-                return BadRequest(new { message = "Username or password is invalid !" });
-            }
+                User user = _userService.Authenticate(model.username, model.password);
 
-            user.lastlogin = DateTime.UtcNow;
-            _context.Entry(user).State = EntityState.Modified;
-            _context.SaveChanges();
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(Configuration["Secret"]);
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new Claim[]
+                if (user == null)
                 {
+                    return BadRequest(new { message = "Username or password is invalid !" });
+                }
+
+                user.lastlogin = DateTime.UtcNow;
+                _context.Entry(user).State = EntityState.Modified;
+                _context.SaveChanges();
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var key = Encoding.ASCII.GetBytes(Configuration["Secret"]);
+                var tokenDescriptor = new SecurityTokenDescriptor
+                {
+                    Subject = new ClaimsIdentity(new Claim[]
+                    {
                     new Claim(ClaimTypes.Name, user.id.ToString()),
                     new Claim(ClaimTypes.Role, user.adminLevel.ToString() ?? "null")
-                }),
-                Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            var tokenString = tokenHandler.WriteToken(token);
+                    }),
+                    Expires = DateTime.UtcNow.AddDays(7),
+                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                };
+                var token = tokenHandler.CreateToken(tokenDescriptor);
+                var tokenString = tokenHandler.WriteToken(token);
 
-            // return basic user info and authentication token
-            return Ok(new
+                // return basic user info and authentication token
+                return Ok(new
+                {
+                    id = user.id,
+                    username = user.username,
+                    firstName = user.firstname,
+                    lastName = user.lastname,
+                    Token = tokenString
+                });
+            }
+            catch (CustomException e)
             {
-                id = user.id,
-                username = user.username,
-                firstName = user.firstname,
-                lastName = user.lastname,
-                Token = tokenString
-            });
+                return BadRequest(new { message = e.ToString() });
+            }
         }
-
 
         [HttpPut("id")]
         public async Task<ActionResult> UpdateUser(int id, User user)
@@ -107,6 +113,21 @@ namespace backend_CA.Controllers
                 await _context.SaveChangesAsync();
                 return CreatedAtAction("GetUsers", new { id = user.id }, user);
             }
+        }
+
+        [Authorize(Roles = AdminLevel.Administrator)]
+                [HttpPost("ban")]
+        public async Task<ActionResult> BanUser(int userId)
+        {
+            if (_userService.isUserIdValid(userId))
+            {
+                User user = _userService.GetUserById(userId);
+                user.isBanned = true;
+                _context.Entry(user).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+                return Ok(new { message = "Successfully banned user " + userId });
+            }
+            return BadRequest(new { message = "The user id is invalid !" });
         }
 
         [Authorize(Roles = AdminLevel.Moderator)]

@@ -39,6 +39,11 @@ namespace backend_CA.Services
                 return null;
             }
 
+            if (user.isBanned)
+            {
+                throw new CustomException("This user has been banned !");
+            }
+
             if (!AuthPassword(password, user.password, user.salt))
             {
                 return null;
