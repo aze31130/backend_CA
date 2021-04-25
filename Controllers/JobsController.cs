@@ -1,43 +1,68 @@
 ﻿using backend_CA.Data;
 using backend_CA.Models;
+using backend_CA.Services;
+using backend_CA.Utils;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace backend_CA.Controllers
 {
+    [Authorize]
+    [ApiController]
+    [Route("[controller]")]
     public class JobsController : Controller
     {
         private readonly Context _context;
-        public JobsController(Context context)
+        private IJobService _jobService;
+
+        public JobsController(Context context, IJobService jobService)
         {
             _context = context;
+            _jobService = jobService;
         }
 
         //-----
         //Create a Job
         //-----
-        [HttpPost]
-        public async Task<ActionResult<Job>> CreateJob()
+        [HttpPost("create")]
+        public  ActionResult<Job> CreateJob(createjobModel model)
         {
-            throw new NotImplementedException();
+            int userId = GetUserId(); 
+            try
+            {
+                _jobService.Create(model, userId);
+                return Ok(new { message = "Job offer successfully created" });
+            }
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.ToString() });
+            }
         }
 
         //-----
         //Edit a Job
         //-----
-        [HttpPut]
-        public async Task<ActionResult<Job>> EditJob()
+        [HttpPut("edit")]
+        public ActionResult<Job> EditJob(createjobModel model, int jobid)
         {
-            throw new NotImplementedException();
+            Job editedjob = _context.jobs.FirstOrDefault();
+            editedjob.availableSlots = 4012;
+            _context.Entry(editedjob).State = EntityState.Modified;
+            _context.SaveChanges();
+            return Ok();
         }
 
         //-----
         //Remove a Job
         //-----
-        [HttpDelete]
-        public async Task<ActionResult<Job>> RemoveJob()
+        [HttpDelete("remove")]
+        public ActionResult<Job> RemoveJob()
         {
             throw new NotImplementedException();
         }
@@ -45,8 +70,8 @@ namespace backend_CA.Controllers
         //-----
         //Apply to a Job
         //-----
-        [HttpPost]
-        public async Task<ActionResult<Job>> Apply()
+        [HttpPost("apply")]
+        public  ActionResult<Job> Apply()
         {
             throw new NotImplementedException();
         }
@@ -54,42 +79,22 @@ namespace backend_CA.Controllers
         //-----
         //List all Jobs
         //-----
-        [HttpPost]
-        public async Task<ActionResult<IEnumerable<Job>>> GetAllAvailableJobs()
+        [HttpPost("get_all_aviable_jobs")]
+        public  ActionResult<IEnumerable<Job>> GetAllAvailableJobs()
         {
-            throw new NotImplementedException();
-        }
-
-        //Function to apply to a job
-        public void apply(User user, int jobId)
-        {
-            throw new NotImplementedException();
-        }
-
-        //Function to get the job history of a user
-        public void getJobHistory(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        private int computeScore(int days, int fame, bool isPremium)
-        {
-            if (isPremium)
+            List<Job> Jobslist = _context.jobs.ToList();
+            List<Job> aviablejobs = new List<Job> { };
+            foreach (Job currentjob in Jobslist)
             {
-                fame += days/2;
+                if (currentjob.availableSlots != 0)
+                    aviablejobs.Add(currentjob);
             }
-            return (int)(2 * (fame ^ 3)) + days;
+            return aviablejobs;
         }
 
-        //Function to search available jobs
-        public void getJob(User user, List<Skill> researshedSKills)
+        private int GetUserId()
         {
-            //First, get all the user skills
-            //Get if the user is premium
-            //get all jobs and filter the researshedSkills
-            //Apply if the member is premium
-
-            throw new NotImplementedException();
+            return int.Parse(User.Identity.Name);
         }
     }
 }
