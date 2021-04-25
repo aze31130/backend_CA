@@ -6,8 +6,7 @@ namespace backend_CA.Models
     public enum USER_TYPE : int
     {
         JOB_SEEKER = 1,
-        EMPLOYER = 2,
-        ADMIN = 3
+        EMPLOYER = 2
     }
 
     public class User
@@ -26,5 +25,6 @@ namespace backend_CA.Models
         public DateTime lastlogin { get; set; }
         public DateTime created { get; set; }
         public bool isPremium { get; set; }
+        public bool isBanned { get; set; }
     }
 }

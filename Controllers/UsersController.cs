@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 
 namespace backend_CA.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class UsersController : Controller
@@ -39,11 +40,11 @@ namespace backend_CA.Controllers
 
         [AllowAnonymous]
         [HttpPost("register")]
-        public ActionResult<User> Register(User user)
+        public ActionResult<User> Register(RegisterModel model)
         {
             try
             {
-                _userService.Register(user);
+                _userService.Register(model);
                 return Ok(new { message = "Account successfully registered !" });
             }
             catch (CustomException e)
@@ -54,7 +55,7 @@ namespace backend_CA.Controllers
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public IActionResult Login(AuthenticateModel model)
+        public IActionResult Login(LoginModel model)
         {
             User user = _userService.Authenticate(model.username, model.password);
 
@@ -63,6 +64,9 @@ namespace backend_CA.Controllers
                 return BadRequest(new { message = "Username or password is invalid !" });
             }
 
+            user.lastlogin = DateTime.UtcNow;
+            _context.Entry(user).State = EntityState.Modified;
+            _context.SaveChanges();
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(Configuration["Secret"]);
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -104,6 +108,8 @@ namespace backend_CA.Controllers
                 return CreatedAtAction("GetUsers", new { id = user.id }, user);
             }
         }
+
+        [Authorize(Roles = AdminLevel.Moderator)]
         [HttpDelete("id")]
         public async Task<ActionResult<User>> DeleteUser(int id)
         {

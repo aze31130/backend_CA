@@ -2,7 +2,7 @@
 
 namespace backend_CA.Models
 {
-    public class AuthenticateModel
+    public class LoginModel
     {
         [Required]
         public string username { get; set; }
