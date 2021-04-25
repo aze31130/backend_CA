@@ -6,7 +6,7 @@ namespace backend_CA.Services
 {
     public interface IJobService
     {
-        Job Create(createjobModel model, int userId);
+        Job Create(CreateJobModel model, int userId);
     }
 
     public class JobService : IJobService
@@ -17,7 +17,7 @@ namespace backend_CA.Services
             _context = context;
         }
 
-        public Job Create(createjobModel model, int userId)
+        public Job Create(CreateJobModel model, int userId)
         {
             if (string.IsNullOrEmpty(model.title))
                 throw new CustomException("You need to enter a title");

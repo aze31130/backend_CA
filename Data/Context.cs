@@ -10,8 +10,9 @@ namespace backend_CA.Data
         public DbSet<User> users { get; set; }
         public DbSet<Chat> chats { get; set; }
         public DbSet<Message> messages { get; set; }
-        
+        public DbSet<Skill> skills { get; set; }
         public DbSet<Job> jobs { get; set; }
+        public DbSet<JobRequest> jobrequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

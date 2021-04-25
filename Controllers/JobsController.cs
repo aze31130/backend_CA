@@ -31,7 +31,7 @@ namespace backend_CA.Controllers
         //Create a Job
         //-----
         [HttpPost("create")]
-        public  ActionResult<Job> CreateJob(createjobModel model)
+        public  ActionResult<Job> CreateJob(CreateJobModel model)
         {
             int userId = GetUserId(); 
             try
@@ -49,7 +49,7 @@ namespace backend_CA.Controllers
         //Edit a Job
         //-----
         [HttpPut("edit")]
-        public ActionResult<Job> EditJob(createjobModel model, int jobid)
+        public ActionResult<Job> EditJob(CreateJobModel model, int jobid)
         {
             Job editedjob = _context.jobs.FirstOrDefault();
             editedjob.availableSlots = 4012;

@@ -1,7 +1,6 @@
-﻿
-namespace backend_CA.Models
+﻿namespace backend_CA.Models
 {
-    public class createjobModel
+    public class CreateJobModel
     {
         public string title { get; set; }
         public string description { get; set; }

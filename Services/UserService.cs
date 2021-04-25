@@ -2,6 +2,7 @@
 using backend_CA.Models;
 using backend_CA.Utils;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using static backend_CA.Utils.HashUtils;
 
@@ -85,6 +86,23 @@ namespace backend_CA.Services
             _context.SaveChanges();
             return user;
         }
+
+        //-----
+        //Returns the list of every skill of a given user
+        //-----
+        public List<Skill> userSkills(int userId)
+        {
+            return _context.skills.ToList().FindAll(x => x.userId.Equals(userId));
+        }
+
+        //-----
+        //Returns the list of every skill of a given user
+        //-----
+        public Skill findSkill(int userId, SKILLS skill)
+        {
+            return userSkills(userId).Find(x => x.skill.Equals(skill));
+        }
+
 
         //-----
         //Returns the user object for a given userId

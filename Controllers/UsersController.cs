@@ -32,12 +32,18 @@ namespace backend_CA.Controllers
             Configuration = configuration;
         }
 
+        //-----
+        //Function to list all users
+        //-----
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             return await _context.users.ToListAsync();
         }
 
+        //-----
+        //Function to register
+        //-----
         [AllowAnonymous]
         [HttpPost("register")]
         public ActionResult<User> Register(RegisterModel model)
@@ -53,6 +59,9 @@ namespace backend_CA.Controllers
             }
         }
 
+        //-----
+        //Function to login
+        //-----
         [AllowAnonymous]
         [HttpPost("login")]
         public IActionResult Login(LoginModel model)
@@ -103,6 +112,7 @@ namespace backend_CA.Controllers
         [HttpPut("id")]
         public async Task<ActionResult> UpdateUser(int id, User user)
         {
+            int userId = getUserId();
             if (!id.Equals(user.id) || !_context.users.Any(x => x.id.Equals(id)))
             {
                 return BadRequest();
@@ -115,8 +125,11 @@ namespace backend_CA.Controllers
             }
         }
 
+        //-----
+        //Bans a user
+        //-----
         [Authorize(Roles = AdminLevel.Administrator)]
-                [HttpPost("ban")]
+        [HttpPost("ban")]
         public async Task<ActionResult> BanUser(int userId)
         {
             if (_userService.isUserIdValid(userId))
@@ -130,7 +143,65 @@ namespace backend_CA.Controllers
             return BadRequest(new { message = "The user id is invalid !" });
         }
 
-        [Authorize(Roles = AdminLevel.Moderator)]
+        //-----
+        //Forgives a user
+        //-----
+        [Authorize(Roles = AdminLevel.Administrator)]
+        [HttpPost("forgive")]
+        public async Task<ActionResult> ForgiveUser(int userId)
+        {
+            if (_userService.isUserIdValid(userId))
+            {
+                User user = _userService.GetUserById(userId);
+                user.isBanned = false;
+                _context.Entry(user).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+                return Ok(new { message = "Successfully forgiven user " + userId });
+            }
+            return BadRequest(new { message = "The user id is invalid !" });
+        }
+
+        //-----
+        //Add a skill to the user
+        //-----
+        [HttpPost("AddSkill")]
+        public async Task<ActionResult> AddSkill(SKILLS skill)
+        {
+            int userId = getUserId();
+            if (!_userService.isUserIdValid(userId))
+            {
+                return BadRequest(new { message = "The user id is invalid !" });
+            }
+            Skill s = new Skill();
+            s.jobId = -1;
+            s.userId = userId;
+            s.skill = skill;
+            _context.skills.Add(s);
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Successfully added the skill " + skill});
+        }
+
+        //-----
+        //Add a skill to the user
+        //-----
+        [HttpPost("RemoveSkill")]
+        public async Task<ActionResult> RemoveSkill(SKILLS skill)
+        {
+            int userId = getUserId();
+            if (!_userService.isUserIdValid(userId))
+            {
+                return BadRequest(new { message = "The user id is invalid !" });
+            }
+
+            //find the skill
+            //Skill s = _userService.findSkill();
+            //remove it
+
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Successfully deleted the skill " + skill });
+        }
+
+        [Authorize(Roles = AdminLevel.Administrator)]
         [HttpDelete("id")]
         public async Task<ActionResult<User>> DeleteUser(int id)
         {
@@ -145,6 +216,14 @@ namespace backend_CA.Controllers
                 await _context.SaveChangesAsync();
                 return user;
             }
+        }
+
+        //-----
+        //Returns the id of the currently logged account
+        //-----
+        private int getUserId()
+        {
+            return int.Parse(User.Identity.Name);
         }
     }
 }
