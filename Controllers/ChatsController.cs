@@ -23,6 +23,9 @@ namespace backend_CA.Controllers
             _chatService = chatService;
         }
 
+        //-----
+        //Method to get a message
+        //-----
         [HttpGet("getMessages")]
         public ActionResult<IEnumerable<Message>> GetChatMessages(int roomId, int limit)
         {
@@ -43,6 +46,9 @@ namespace backend_CA.Controllers
             return _context.messages.ToList().FindAll(x => x.roomId.Equals(roomId));
         }
 
+        //-----
+        //Method to send a message
+        //-----
         [HttpPost("sendMessage")]
         public async Task<ActionResult<Message>> SendMessage(MessageModel model)
         {
@@ -71,6 +77,9 @@ namespace backend_CA.Controllers
             return CreatedAtAction("GetChatMessages", new { id = message.id }, message);
         }
 
+        //-----
+        //Method to create a room
+        //-----
         [HttpPost("createRoom")]
         public async Task<ActionResult> CreateChatRoom(CreateRoomModel model)
         {
