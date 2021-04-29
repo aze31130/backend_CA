@@ -193,9 +193,15 @@ namespace backend_CA.Controllers
                 return BadRequest(new { message = "The user id is invalid !" });
             }
 
-            //find the skill
-            //Skill s = _userService.findSkill();
-            //remove it
+            //Find and remove the skill
+            foreach (Skill s in _context.skills.ToList().FindAll(x => x.userId.Equals(userId)))
+            {
+                Console.WriteLine(s.id);
+                if (s.skill.Equals(skill))
+                {
+                    _context.skills.Remove(s);
+                }
+            }
 
             await _context.SaveChangesAsync();
             return Ok(new { message = "Successfully deleted the skill " + skill });
