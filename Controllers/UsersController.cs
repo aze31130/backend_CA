@@ -48,7 +48,7 @@ namespace backend_CA.Controllers
         [HttpPost("register")]
         public ActionResult<User> Register(RegisterModel model)
         {
-            try
+            try // ON SAIT PAS QUEL TYPE D'USER ON CREE DANS LE SWAGGER !!!!!!
             {
                 _userService.Register(model);
                 return Ok(new { message = "Account successfully registered !" });

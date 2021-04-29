@@ -51,21 +51,34 @@ namespace backend_CA.Controllers
         [HttpPut("edit")]
         public ActionResult<Job> EditJob(CreateJobModel model, int jobId)
         {
-            Job editedjob = _context.jobs.ToList().Find(x => x.id == jobId);
             int userId = GetUserId();
-            _jobService.Create(model, userId); //question pour le prof : comment récupérer les variables précédentes dans le swagger
-            _context.Entry(editedjob).State = EntityState.Modified;
-            _context.SaveChanges();
-            return Ok();
+            try
+            {
+                _jobService.Edit(model, jobId, userId);
+                return Ok(new { message = "Job successfully edited" });
+            }
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.ToString() });
+            }
         }
 
         //-----
         //Remove a Job
         //-----
         [HttpDelete("remove")]
-        public ActionResult<Job> RemoveJob()
+        public ActionResult<Job> RemoveJob(int jobId)
         {
-            throw new NotImplementedException();
+            int userId = GetUserId();
+            try
+            {
+                _jobService.Delete(userId, jobId);
+                return Ok(new { message = "Job successfully deleted" });
+            }
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.ToString() });
+            }
         }
 
         //-----
