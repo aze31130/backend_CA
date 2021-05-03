@@ -4,6 +4,6 @@
     {
         public string title { get; set; }
         public string description { get; set; }
-        public int aviableSlots { get; set; }
+        public int availableSlots { get; set; }
     }
 }

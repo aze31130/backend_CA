@@ -6,7 +6,9 @@ namespace backend_CA.Models
     {
         [Key]
         public int id { get; set; } //used as roomId
-        public int senderId { get; set; }
+        public int owner { get; set; }
+        public string roomName { get; set; }
+        public string roomDescription { get; set; }
         public int receiverId { get; set; }
     }
 }

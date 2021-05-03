@@ -1,8 +1,10 @@
 ﻿using backend_CA.Data;
 using backend_CA.Models;
 using backend_CA.Services;
+using backend_CA.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,81 +26,88 @@ namespace backend_CA.Controllers
         }
 
         //-----
+        //Method to get a list of every room Id owned by the user
+        //-----
+        [HttpGet("getRooms")]
+        public ActionResult<IEnumerable<Chat>> GetRooms()
+        {
+            return _context.chats.ToList().FindAll(x => x.receiverId.Equals(getUserId()) || x.owner.Equals(getUserId()));
+        }
+
+        //-----
+        //Method to get a list of every users inside a room
+        //-----
+        [HttpGet("getUsersInRooms")]
+        public ActionResult<IEnumerable<User>> GetUsersInRooms()
+        {
+            return _chatService.getRoomMember(getUserId());
+        }
+
+        //-----
         //Method to get a message
         //-----
         [HttpGet("getMessages")]
         public ActionResult<IEnumerable<Message>> GetChatMessages(int roomId, int limit)
         {
-            if (!_chatService.isRoomIdExist(roomId))
+            try
             {
-                return BadRequest(new { message = "This room id doesn't exists" });
+                return _chatService.getChatMessages(roomId, limit, getUserId());
             }
-
-            if (!_chatService.isRoomReadable(roomId, getUserId()))
+            catch (CustomException e)
             {
-                return BadRequest(new { message = "You cannot read this room" });
+                return BadRequest(new { message = e.ToString() });
             }
-
-            if (limit > 0)
-            {
-                return _context.messages.ToList().FindAll(x => x.roomId.Equals(roomId)).Take(limit).ToList();
-            }
-            return _context.messages.ToList().FindAll(x => x.roomId.Equals(roomId));
         }
 
         //-----
         //Method to send a message
         //-----
         [HttpPost("sendMessage")]
-        public async Task<ActionResult<Message>> SendMessage(MessageModel model)
+        public ActionResult<Message> SendMessage(MessageModel model)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                _chatService.sendMessage(model.roomId, getUserId(), model.content);
+                return Ok(new { message = "Sucessfully sent " + model.content + " to room " + model.roomId });
             }
-
-            if (!_chatService.isRoomIdExist(model.roomId))
+            catch (CustomException e)
             {
-                return BadRequest(new { message = "Cannot send your message ! Room Id: " + model.roomId + " doesn't exist !" });
+                return BadRequest(new { message = e.ToString() });
             }
-
-            if (!_chatService.isRoomReadable(model.roomId, getUserId()))
-            {
-                return BadRequest(new { message = "You cannot send a message to this room" });
-            }
-
-            Message message = new Message();
-            message.roomId = model.roomId;
-            message.content = model.content;
-            message.written = DateTime.UtcNow;
-            message.isRead = false;
-            _context.messages.Add(message);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction("GetChatMessages", new { id = message.id }, message);
         }
 
         //-----
         //Method to create a room
         //-----
         [HttpPost("createRoom")]
-        public async Task<ActionResult> CreateChatRoom(CreateRoomModel model)
+        public ActionResult CreateChatRoom(CreateRoomModel model)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
-            }
-
-            if (_chatService.isUserExist(getUserId()) && _chatService.isUserExist(model.receiverId))
-            {
-                Chat chat = new Chat();
-                chat.senderId = getUserId();
-                chat.receiverId = model.receiverId;
-
-                _context.chats.Add(chat);
-                await _context.SaveChangesAsync();
+                _chatService.createRoom(getUserId(), model.roomName, model.roomDescription, model.receiverId);
                 return Ok(new { message = "Sucessfully created the room !" });
             }
-            return BadRequest(new { message = "Receiver or sender Id are incorrect !" });
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.ToString() });
+            }
+        }
+
+        //-----
+        //Method to delete a room
+        //-----
+        [HttpDelete("deleteRoom")]
+        public ActionResult DeleteChatRoom(int roomId)
+        {
+            try
+            {
+                _chatService.deleteRoom(roomId, getUserId());
+                return Ok(new { message = "Sucessfully deleted the room and every linked messages !" });
+            }
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.ToString() });
+            }
         }
 
         //-----

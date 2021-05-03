@@ -8,6 +8,7 @@ namespace backend_CA.Models
         [Key]
         public int id { get; set; }
         public int roomId { get; set; }
+        public int senderId { get; set; }
         public string content { get; set; }
         public DateTime written { get; set; }
         public bool isRead { get; set; }

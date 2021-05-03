@@ -24,15 +24,17 @@ namespace backend_CA.Services
         public void Create(CreateJobModel model, int userId)
         {
             if (string.IsNullOrEmpty(model.title))
-                throw new CustomException("You need to enter a title");
+                throw new CustomException("You need to enter a title !");
 
-            if (model.aviableSlots <= 0)
-                throw new CustomException("your can't create a job without aviable slots.");
+            if (model.availableSlots <= 0)
+                throw new CustomException("You can't create a job without available slots !");
+            if (IsEmployer(userId))
+                throw new CustomException("You need to be a employer in order to create a job request !");
 
             Job job = new Job();
             job.title = model.title;
             job.description = model.description;
-            job.availableSlots = model.aviableSlots;
+            job.availableSlots = model.availableSlots;
             job.employerId = userId;
 
             _context.jobs.Add(job);
@@ -50,17 +52,21 @@ namespace backend_CA.Services
 
             if (string.IsNullOrEmpty(model.title))
                 throw new CustomException("You need to enter a title");
-            else editedjob.title = model.title;
 
-            editedjob.description = model.description;
+            if (string.IsNullOrEmpty(model.description))
+                throw new CustomException("You need to enter a description");
 
-            if (model.aviableSlots <= 0)
+            if (model.availableSlots <= 0)
                 throw new CustomException("your can't edit a job without aviable slots.");
-            else editedjob.availableSlots = model.aviableSlots;
+
+            editedjob.title = model.title;
+            editedjob.description = model.description;
+            editedjob.availableSlots = model.availableSlots;
 
             _context.Entry(editedjob).State = EntityState.Modified;
             _context.SaveChanges();
         }
+
         public void Delete(int userId, int jobId)
         {
             Job removedjob = _context.jobs.ToList().Find(x => x.id == jobId);
