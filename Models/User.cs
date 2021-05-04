@@ -3,10 +3,16 @@ using System.ComponentModel.DataAnnotations;
 
 namespace backend_CA.Models
 {
+    /*
+     * The MOD user can ban (soft delete) anything 
+     * The ADMIN user is able to hard delete anything
+     */
     public enum USER_TYPE : int
     {
         JOB_SEEKER = 1,
-        EMPLOYER = 2
+        EMPLOYER = 2,
+        MOD = 3,
+        ADMIN = 4
     }
 
     public class User
@@ -19,12 +25,12 @@ namespace backend_CA.Models
         public string password { get; set; }
         public string salt { get; set; }
         public string email { get; set; }
-        public int adminLevel { get; set; }
         public int fame { get; set; }
         public USER_TYPE type { get; set; }
         public DateTime lastlogin { get; set; }
         public DateTime created { get; set; }
         public bool isPremium { get; set; }
+        public bool isSearchingJobs { get; set; }
         public bool isBanned { get; set; }
     }
 }

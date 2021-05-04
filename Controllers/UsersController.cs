@@ -48,7 +48,7 @@ namespace backend_CA.Controllers
         [HttpPost("register")]
         public ActionResult<User> Register(RegisterModel model)
         {
-            try // ON SAIT PAS QUEL TYPE D'USER ON CREE DANS LE SWAGGER !!!!!!
+            try
             {
                 _userService.Register(model);
                 return Ok(new { message = "Account successfully registered !" });
@@ -75,6 +75,7 @@ namespace backend_CA.Controllers
                     return BadRequest(new { message = "Username or password is invalid !" });
                 }
 
+                //Updated last login
                 user.lastlogin = DateTime.UtcNow;
                 _context.Entry(user).State = EntityState.Modified;
                 _context.SaveChanges();
@@ -85,7 +86,7 @@ namespace backend_CA.Controllers
                     Subject = new ClaimsIdentity(new Claim[]
                     {
                     new Claim(ClaimTypes.Name, user.id.ToString()),
-                    new Claim(ClaimTypes.Role, user.adminLevel.ToString() ?? "null")
+                    new Claim(ClaimTypes.Role, user.type.ToString() ?? "null")
                     }),
                     Expires = DateTime.UtcNow.AddDays(7),
                     SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
@@ -93,7 +94,7 @@ namespace backend_CA.Controllers
                 var token = tokenHandler.CreateToken(tokenDescriptor);
                 var tokenString = tokenHandler.WriteToken(token);
 
-                // return basic user info and authentication token
+                //Return basic user info and authentication token
                 return Ok(new
                 {
                     id = user.id,
@@ -109,118 +110,96 @@ namespace backend_CA.Controllers
             }
         }
 
-        [HttpPut("id")]
-        public async Task<ActionResult> UpdateUser(int id, User user)
+        //-----
+        //Function to update any user
+        //-----
+        [HttpPut("AdminUpdateUser")]
+        public ActionResult AdminUpdateUser(int userId, UpdateProfileModel model)
         {
-            int userId = getUserId();
-            if (!id.Equals(user.id) || !_context.users.Any(x => x.id.Equals(id)))
+            try
             {
-                return BadRequest();
+                _userService.updateUser(userId, model);
+                return Ok(new { message = "Profile successfully updated !" });
             }
-            else
+            catch (CustomException e)
             {
-                _context.Entry(user).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
-                return CreatedAtAction("GetUsers", new { id = user.id }, user);
+                return BadRequest(new { message = e.ToString() });
             }
         }
 
         //-----
-        //Bans a user
+        //Function to update self user
         //-----
-        [Authorize(Roles = AdminLevel.Administrator)]
-        [HttpPost("ban")]
-        public async Task<ActionResult> BanUser(int userId)
+        [HttpPut("UpdateUser")]
+        public ActionResult UpdateUser(UpdateProfileModel model)
         {
-            if (_userService.isUserIdValid(userId))
+            try
             {
-                User user = _userService.GetUserById(userId);
-                user.isBanned = true;
-                _context.Entry(user).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
-                return Ok(new { message = "Successfully banned user " + userId });
+                _userService.updateUser(getUserId(), model);
+                return Ok(new { message = "Profile successfully updated !" });
             }
-            return BadRequest(new { message = "The user id is invalid !" });
-        }
-
-        //-----
-        //Forgives a user
-        //-----
-        [Authorize(Roles = AdminLevel.Administrator)]
-        [HttpPost("forgive")]
-        public async Task<ActionResult> ForgiveUser(int userId)
-        {
-            if (_userService.isUserIdValid(userId))
+            catch (CustomException e)
             {
-                User user = _userService.GetUserById(userId);
-                user.isBanned = false;
-                _context.Entry(user).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
-                return Ok(new { message = "Successfully forgiven user " + userId });
+                return BadRequest(new { message = e.ToString() });
             }
-            return BadRequest(new { message = "The user id is invalid !" });
         }
 
         //-----
         //Add a skill to the user
         //-----
         [HttpPost("AddSkill")]
-        public async Task<ActionResult> AddSkill(SKILLS skill)
+        public ActionResult AddSkill(SKILLS skill)
         {
-            int userId = getUserId();
-            if (!_userService.isUserIdValid(userId))
+            try
             {
-                return BadRequest(new { message = "The user id is invalid !" });
+                _userService.addUserSkill(getUserId(), skill);
+                return Ok(new { message = "Successfully added the skill " + skill.ToString() });
             }
-            Skill s = new Skill();
-            s.jobId = -1;
-            s.userId = userId;
-            s.skill = skill;
-            _context.skills.Add(s);
-            await _context.SaveChangesAsync();
-            return Ok(new { message = "Successfully added the skill " + skill});
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
         }
 
         //-----
         //Add a skill to the user
         //-----
         [HttpPost("RemoveSkill")]
-        public async Task<ActionResult> RemoveSkill(SKILLS skill)
+        public ActionResult RemoveSkill(SKILLS skill)
         {
-            int userId = getUserId();
-            if (!_userService.isUserIdValid(userId))
+            try
             {
-                return BadRequest(new { message = "The user id is invalid !" });
+                _userService.removeUserSkill(getUserId(), skill);
+                return Ok(new { message = "Successfully deleted the skill " + skill.ToString() });
             }
-
-            //Find and remove the skill
-            foreach (Skill s in _context.skills.ToList().FindAll(x => x.userId.Equals(userId)))
+            catch (CustomException e)
             {
-                Console.WriteLine(s.id);
-                if (s.skill.Equals(skill))
-                {
-                    _context.skills.Remove(s);
-                }
+                return BadRequest(new { message = e.Message });
             }
-
-            await _context.SaveChangesAsync();
-            return Ok(new { message = "Successfully deleted the skill " + skill });
         }
 
-        [Authorize(Roles = AdminLevel.Administrator)]
-        [HttpDelete("id")]
-        public async Task<ActionResult<User>> DeleteUser(int id)
+        //-----
+        //Get a list of all user's skills
+        //-----
+        [HttpGet("GetSelfUserSkills")]
+        public ActionResult<IEnumerable<SKILLS>> GetSelfUserSkills()
         {
-            var user = await _context.users.FindAsync(id);
-            if (user == null)
+            return GetUserSkills(getUserId());
+        }
+
+        //-----
+        //Get a list of all skills for a given user
+        //-----
+        [HttpGet("GetUserSkills")]
+        public ActionResult<IEnumerable<SKILLS>> GetUserSkills(int userId)
+        {
+            try
             {
-                return NotFound();
+                return _userService.GetUserSkills(userId);
             }
-            else
+            catch (CustomException e)
             {
-                _context.users.Remove(user);
-                await _context.SaveChangesAsync();
-                return user;
+                return BadRequest(new { message = e.Message });
             }
         }
 
@@ -229,7 +208,12 @@ namespace backend_CA.Controllers
         //-----
         private int getUserId()
         {
-            return int.Parse(User.Identity.Name);
+            int userId = int.Parse(User.Identity.Name);
+            if (_userService.isUserIdValid(userId))
+            {
+                return userId;
+            }
+            return -1;
         }
     }
 }
