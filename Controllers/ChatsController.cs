@@ -31,16 +31,16 @@ namespace backend_CA.Controllers
         [HttpGet("getRooms")]
         public ActionResult<IEnumerable<Chat>> GetRooms()
         {
-            return _context.chats.ToList().FindAll(x => x.receiverId.Equals(getUserId()) || x.owner.Equals(getUserId()));
+            return _chatService.getRooms(getUserId());
         }
 
         //-----
         //Method to get a list of every users inside a room
         //-----
         [HttpGet("getUsersInRooms")]
-        public ActionResult<IEnumerable<User>> GetUsersInRooms()
+        public ActionResult<IEnumerable<User>> GetUsersInRooms(int roomId)
         {
-            return _chatService.getRoomMember(getUserId());
+            return _chatService.getRoomMember(roomId);
         }
 
         //-----
@@ -84,7 +84,7 @@ namespace backend_CA.Controllers
         {
             try
             {
-                _chatService.createRoom(getUserId(), model.roomName, model.roomDescription, model.receiverId);
+                _chatService.createRoom(getUserId(), model.roomName, model.roomDescription);
                 return Ok(new { message = "Sucessfully created the room !" });
             }
             catch (CustomException e)
@@ -103,6 +103,57 @@ namespace backend_CA.Controllers
             {
                 _chatService.deleteRoom(roomId, getUserId());
                 return Ok(new { message = "Sucessfully deleted the room and every linked messages !" });
+            }
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.ToString() });
+            }
+        }
+
+        //-----
+        //Method to invite a given user in a room
+        //-----
+        [HttpPost("inviteUserRoom")]
+        public ActionResult InviteUserInChatRoom(int userId, int roomId)
+        {
+            try
+            {
+                _chatService.inviteUser(userId, roomId);
+                return Ok(new { message = "Sucessfully added user " + userId + " to room " + roomId });
+            }
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.ToString() });
+            }
+        }
+
+        //-----
+        //Method to invite a given user in a room
+        //-----
+        [HttpPost("leaveRoom")]
+        public ActionResult LeaveChatRoom(int roomId)
+        {
+            try
+            {
+                _chatService.leaveChat(getUserId(),roomId);
+                return Ok(new { message = "Sucessfully left room " + roomId });
+            }
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.ToString() });
+            }
+        }
+
+        //-----
+        //Method to invite a given user in a room
+        //-----
+        [HttpPost("kickfromRoom")]
+        public ActionResult KickChatRoom(int userId, int roomId)
+        {
+            try
+            {
+                _chatService.kickChat(userId, roomId, getUserId());
+                return Ok(new { message = "Sucessfully kicked user " + userId +  " from room " + roomId });
             }
             catch (CustomException e)
             {

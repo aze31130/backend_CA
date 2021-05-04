@@ -14,11 +14,15 @@ namespace backend_CA.Services
         bool isRoomReadable(int roomId, int userId);
         bool isUserExist(int userId);
         bool isRoomOwned(int roomId, int userId);
-        void createRoom(int ownerId, string roomName, string roomDescription, int receiverId);
+        void createRoom(int ownerId, string roomName, string roomDescription);
         void deleteRoom(int roomId, int userId);
+        List<Chat> getRooms(int userId);
         List<User> getRoomMember(int roomId);
         List<Message> getChatMessages(int roomId, int limit, int userId);
         void sendMessage(int roomId, int senderId, string content);
+        void inviteUser(int userId, int roomId);
+        void leaveChat(int userId, int roomId);
+        void kickChat(int userId, int roomId, int executerId);
     }
 
     public class ChatService : IChatService
@@ -27,6 +31,22 @@ namespace backend_CA.Services
         public ChatService(Context context)
         {
             _context = context;
+        }
+
+        public List<Chat> getRooms(int userId)
+        {
+            List<Chat> chats = new List<Chat> { };
+            foreach (UsersRooms room in _context.usersrooms.ToList().FindAll(x => x.userId.Equals(userId)))
+            {
+                chats.Add(getChatById(room.roomId));
+            }
+
+            return chats;
+        }
+
+        public Chat getChatById(int chatId)
+        {
+            return _context.chats.ToList().Find(x => x.id.Equals(chatId));
         }
 
         public void sendMessage(int roomId, int senderId, string content)
@@ -148,11 +168,19 @@ namespace backend_CA.Services
         //-----
         public bool isRoomReadable(int roomId, int userId)
         {
-            if (_context.chats.ToList().Find(x => x.id.Equals(roomId)).owner.Equals(userId)
-                || _context.chats.ToList().Find(x => x.id.Equals(roomId)).receiverId.Equals(userId))
+            if (_context.chats.ToList().Find(x => x.id.Equals(roomId)).owner.Equals(userId))
             {
                 return true;
             }
+
+            foreach (UsersRooms ur in _context.usersrooms.ToList().FindAll(x => x.roomId.Equals(roomId)))
+            {
+                if (ur.userId.Equals(userId))
+                {
+                    return true;
+                }
+            }
+
             return false;
         }
 
@@ -171,9 +199,9 @@ namespace backend_CA.Services
         //-----
         //Creates a chat room
         //-----
-        public void createRoom(int ownerId, string roomName, string roomDescription, int receiverId)
+        public void createRoom(int ownerId, string roomName, string roomDescription)
         {
-            if (!(isUserExist(ownerId) && isUserExist(receiverId)))
+            if (!(isUserExist(ownerId)))
             {
                 throw new CustomException("Receiver or sender Id are incorrect !");
             }
@@ -187,10 +215,15 @@ namespace backend_CA.Services
             chat.owner = ownerId;
             chat.roomName = roomName;
             chat.roomDescription = roomDescription;
-            chat.receiverId = receiverId;
 
             _context.chats.Add(chat);
+
+            //We need to apply the changes here to make the id property of the chat object to update
+            //to the foreign key
             _context.SaveChanges();
+
+            //Add the user to the usersrooms
+            inviteUser(ownerId, _context.chats.ToList().Find(x => x.id.Equals(chat.id)).id);
         }
 
         //-----
@@ -216,6 +249,98 @@ namespace backend_CA.Services
                     _context.messages.Remove(m);
                 }
             }
+
+            //Remove all usersrooms
+            foreach (UsersRooms ur in _context.usersrooms.ToList())
+            {
+                if (ur.roomId.Equals(roomId))
+                {
+                    _context.usersrooms.Remove(ur);
+                }
+            }
+            _context.SaveChanges();
+        }
+
+        //-----
+        //Invites a user to a chat room
+        //-----
+        public void inviteUser(int userId, int roomId)
+        {
+            //Check if the user exists
+            if (!isUserExist(userId))
+            {
+                throw new CustomException("This user doesn't exist !");
+            }
+
+            //Check if the room exists
+            if (!isRoomExist(roomId))
+            {
+                throw new CustomException("This room doesn't exist ! ");
+            }
+
+            UsersRooms ur = new UsersRooms();
+            ur.roomId = roomId;
+            ur.userId = userId;
+            _context.usersrooms.Add(ur);
+            _context.SaveChanges();
+        }
+
+
+        //-----
+        //Leaves a chat room
+        //-----
+        public void leaveChat(int userId, int roomId)
+        {
+            //Check if the user exists
+            if (!isUserExist(userId))
+            {
+                throw new CustomException("This user doesn't exist !");
+            }
+
+            //Check if the room exists
+            if (!isRoomExist(roomId))
+            {
+                throw new CustomException("This room doesn't exist ! ");
+            }
+
+            //If the user is the owner then the room is destroyed
+            if (_context.chats.ToList().Find(x => x.id.Equals(roomId)).owner.Equals(_context.users.ToList().Find(x => x.id.Equals(userId)).id))
+            {
+                deleteRoom(roomId, userId);
+            }
+            else
+            {
+                UsersRooms ur = _context.usersrooms.ToList().Find(x => x.roomId.Equals(roomId) && x.userId.Equals(userId));
+                _context.usersrooms.Remove(ur);
+                _context.SaveChanges();
+            }
+        }
+
+        //-----
+        //Kicks someone from a chat room
+        //-----
+        public void kickChat(int userId, int roomId, int executerId)
+        {
+            //Check if the user exists
+            if (!isUserExist(userId))
+            {
+                throw new CustomException("This user doesn't exist !");
+            }
+
+            //Check if the room exists
+            if (!isRoomExist(roomId))
+            {
+                throw new CustomException("This room doesn't exist !");
+            }
+
+            //If the user is not the owner
+            if (!_context.chats.ToList().Find(x => x.id.Equals(roomId)).owner.Equals(_context.users.ToList().Find(x => x.id.Equals(executerId)).id))
+            {
+                throw new CustomException("Only the owner is able to kick someone !");
+            }
+
+            UsersRooms ur = _context.usersrooms.ToList().Find(x => x.roomId.Equals(roomId) && x.userId.Equals(userId));
+            _context.usersrooms.Remove(ur);
             _context.SaveChanges();
         }
     }
