@@ -61,6 +61,7 @@ namespace backend_CA
                 };
             });
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IAdminService, AdminService>();
             services.AddScoped<IChatService, ChatService>();
             services.AddScoped<IJobService, JobService>();
             services.AddControllers();

@@ -14,12 +14,12 @@ namespace backend_CA.Controllers
     public class ModController : Controller
     {
         public IConfiguration Configuration;
-        private IUserService _userService;
+        private IAdminService _adminService;
         private readonly Context _context;
-        public ModController(Context context, IUserService userService, IConfiguration configuration)
+        public ModController(Context context, IAdminService adminService, IConfiguration configuration)
         {
             _context = context;
-            _userService = userService;
+            _adminService = adminService;
             Configuration = configuration;
         }
 
@@ -31,7 +31,7 @@ namespace backend_CA.Controllers
         {
             try
             {
-                _userService.banUser(userId);
+                _adminService.banUser(userId);
                 return Ok(new { message = "Successfully banned user " + userId });
             }
             catch (CustomException e)
@@ -48,7 +48,7 @@ namespace backend_CA.Controllers
         {
             try
             {
-                _userService.forgiveUser(userId);
+                _adminService.forgiveUser(userId);
                 return Ok(new { message = "Successfully banned user " + userId });
             }
             catch (CustomException e)

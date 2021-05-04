@@ -13,7 +13,7 @@ namespace backend_CA.Data
         public DbSet<Skill> skills { get; set; }
         public DbSet<Job> jobs { get; set; }
         public DbSet<JobRequest> jobrequests { get; set; }
-        public DbSet<JobApplyModel> jobapply { get; set; }
+        public DbSet<JobApply> jobapply { get; set; }
         public DbSet<UsersRooms> usersrooms { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

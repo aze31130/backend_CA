@@ -2,7 +2,7 @@
 
 namespace backend_CA.Models
 {
-    public class JobApplyModel
+    public class JobApply
     {
         [Key]
         public int id { get; set; }

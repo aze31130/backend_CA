@@ -20,8 +20,6 @@ namespace backend_CA.Services
         User Register(RegisterModel model);
         User GetUserById(int id);
         bool isUserIdValid(int userId);
-        void banUser(int userId);
-        void forgiveUser(int userId);
     }
 
     public class UserService : IUserService
@@ -30,42 +28,6 @@ namespace backend_CA.Services
         public UserService(Context context)
         {
             _context = context;
-        }
-
-
-        //-----
-        //Function to forgive a given user
-        //-----
-        public void forgiveUser(int userId)
-        {
-            if (!isUserIdValid(userId))
-            {
-                throw new CustomException("This user doesn't exist !");
-            }
-
-            //Get the user
-            User user = GetUserById(userId);
-            user.isBanned = false;
-            _context.Entry(user).State = EntityState.Modified;
-            _context.SaveChanges();
-        }
-
-
-        //-----
-        //Function to ban a given user
-        //-----
-        public void banUser(int userId)
-        {
-            if (!isUserIdValid(userId))
-            {
-                throw new CustomException("This user doesn't exist !");
-            }
-            
-            //Get the user
-            User user = GetUserById(userId);
-            user.isBanned = true;
-            _context.Entry(user).State = EntityState.Modified;
-            _context.SaveChanges();
         }
 
         //-----

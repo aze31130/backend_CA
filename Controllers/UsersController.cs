@@ -111,23 +111,6 @@ namespace backend_CA.Controllers
         }
 
         //-----
-        //Function to update any user
-        //-----
-        [HttpPut("AdminUpdateUser")]
-        public ActionResult AdminUpdateUser(int userId, UpdateProfileModel model)
-        {
-            try
-            {
-                _userService.updateUser(userId, model);
-                return Ok(new { message = "Profile successfully updated !" });
-            }
-            catch (CustomException e)
-            {
-                return BadRequest(new { message = e.ToString() });
-            }
-        }
-
-        //-----
         //Function to update self user
         //-----
         [HttpPut("UpdateUser")]

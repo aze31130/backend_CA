@@ -1,6 +1,7 @@
 ﻿using backend_CA.Data;
 using backend_CA.Models;
 using backend_CA.Services;
+using backend_CA.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -13,35 +14,47 @@ namespace backend_CA.Controllers
     public class AdminController : Controller
     {
         public IConfiguration Configuration;
-        private IUserService _userService;
+        private IAdminService _adminService;
         private readonly Context _context;
-        public AdminController(Context context, IUserService userService, IConfiguration configuration)
+        public AdminController(Context context, IAdminService adminService, IConfiguration configuration)
         {
             _context = context;
-            _userService = userService;
+            _adminService = adminService;
             Configuration = configuration;
         }
 
-
-        [HttpDelete("id")]
-        public ActionResult<User> DeleteUser(int id)
+        //-----
+        //Function to update any user
+        //-----
+        [HttpPut("ForceUpdateUser")]
+        public ActionResult ForceUpdateUser(int userId, UpdateProfileModel model)
         {
-            /*
-            var user = _context.users.Find(id);
-            if (user == null)
+            try
             {
-                return NotFound();
+                _adminService.updateUser(userId, model);
+                return Ok(new { message = "Profile successfully updated !" });
             }
-            else
+            catch (CustomException e)
             {
-                _context.users.Remove(user);
-                _context.SaveChanges();
-                return user;
+                return BadRequest(new { message = e.Message });
             }
-            */
-            return null;
         }
 
-
+        //-----
+        //Function to hard delete a user
+        //-----
+        [HttpDelete("DeleteUser")]
+        public ActionResult<User> DeleteUser(int userId)
+        {
+            try
+            {
+                _adminService.deleteUser(userId);
+                return Ok(new { message = "Profile successfully deleted !" });
+            }
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
     }
 }
