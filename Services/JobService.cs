@@ -23,8 +23,8 @@ namespace backend_CA.Services
 
         public void Create(CreateJobModel model, int userId)
         {
-            if (string.IsNullOrEmpty(model.title))
-                throw new CustomException("You need to enter a title !");
+            if (string.IsNullOrEmpty(model.title) && string.IsNullOrEmpty(model.description))
+                throw new CustomException("You need to enter a title and a description !");
 
             if (model.availableSlots <= 0)
                 throw new CustomException("You can't create a job without available slots !");
@@ -50,11 +50,8 @@ namespace backend_CA.Services
             if (!(IsEmployer(userId) && userId == editedjob.employerId))
                 throw new CustomException("you can't edit this job");
 
-            if (string.IsNullOrEmpty(model.title))
-                throw new CustomException("You need to enter a title");
-
-            if (string.IsNullOrEmpty(model.description))
-                throw new CustomException("You need to enter a description");
+            if (string.IsNullOrEmpty(model.title) && string.IsNullOrEmpty(model.description))
+                throw new CustomException("You need to enter a title and a description");
 
             if (model.availableSlots <= 0)
                 throw new CustomException("your can't edit a job without aviable slots.");
@@ -80,10 +77,10 @@ namespace backend_CA.Services
             _context.SaveChanges();
         }
 
+        //Check if the given user id is employer or mod or admin
         private bool IsEmployer(int userId)
         {
-            User user = _context.users.ToList().Find(x => x.id == userId);
-            return (user.type == USER_TYPE.EMPLOYER);
+            return (_context.users.ToList().Find(x => x.id == userId).type != USER_TYPE.JOB_SEEKER);
         }
     }
 }

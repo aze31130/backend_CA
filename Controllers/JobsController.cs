@@ -38,7 +38,7 @@ namespace backend_CA.Controllers
             }
             catch (CustomException e)
             {
-                return BadRequest(new { message = e.ToString() });
+                return BadRequest(new { message = e.Message });
             }
         }
 
@@ -56,7 +56,7 @@ namespace backend_CA.Controllers
             }
             catch (CustomException e)
             {
-                return BadRequest(new { message = e.ToString() });
+                return BadRequest(new { message = e.Message });
             }
         }
 
@@ -74,7 +74,7 @@ namespace backend_CA.Controllers
             }
             catch (CustomException e)
             {
-                return BadRequest(new { message = e.ToString() });
+                return BadRequest(new { message = e.Message });
             }
         }
 
@@ -90,7 +90,7 @@ namespace backend_CA.Controllers
         //-----
         //List all Jobs
         //-----
-        [HttpPost("get_all_aviable_jobs")]
+        [HttpPost("get_all_available_jobs")]
         public  ActionResult<IEnumerable<Job>> GetAllAvailableJobs()
         {
             List<Job> Jobslist = _context.jobs.ToList();
