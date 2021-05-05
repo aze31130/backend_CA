@@ -24,12 +24,40 @@ namespace backend_CA.Controllers
     {
         public IConfiguration Configuration;
         private IUserService _userService;
+        private readonly IEmailService _emailService;
         private readonly Context _context;
-        public UsersController(Context context, IUserService userService, IConfiguration configuration)
+        public UsersController(Context context, IUserService userService, IConfiguration configuration, IEmailService emailService)
         {
             _context = context;
             _userService = userService;
+            _emailService = emailService;
             Configuration = configuration;
+        }
+
+        //-----
+        //Function to open a ticket
+        //-----
+        [HttpPost("OpenTicket")]
+        public ActionResult OpenTicket(OpenTicketModel model)
+        {
+            try
+            {
+                _userService.OpenTicket(getUserId(), model);
+                return Ok(new { message = "Successfully opened ticket :" + model.title + ". An Administrator will answer you in a few." });
+            }
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+        //-----
+        //Function to list all account tickets
+        //-----
+        [HttpPost("GetAllTickets")]
+        public ActionResult<IEnumerable<Ticket>> GetAllTickets()
+        {
+            return _context.tickets.ToList().FindAll(x => x.userId.Equals(getUserId()));
         }
 
         //-----
@@ -55,7 +83,42 @@ namespace backend_CA.Controllers
             }
             catch (CustomException e)
             {
-                return BadRequest(new { message = e.ToString() });
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+        //-----
+        //Function to change selfuser password
+        //-----
+        [HttpPut("ChangePassword")]
+        public ActionResult ChangePassword(ChangePasswordModel model)
+        {
+            try
+            {
+                _userService.changeUserPassword(getUserId(), model);
+                return Ok(new { message = "Successfully changed the password !" });
+            }
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+        //-----
+        //Function to resend a password
+        //-----
+        [AllowAnonymous]
+        [HttpPut("ForgotPassword")]
+        public ActionResult ForgotPassword(string email)
+        {
+            try
+            {
+                _userService.ForgotPassword(email);
+                return Ok(new { message = "Successfully changed the password !" });
+            }
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.Message });
             }
         }
 

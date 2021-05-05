@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace backend_CA.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = AdminLevel.Employer + "," + AdminLevel.Moderator + "," + AdminLevel.Administrator)]
     [ApiController]
     [Route("[controller]")]
     public class JobsController : Controller

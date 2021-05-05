@@ -15,6 +15,8 @@ namespace backend_CA.Data
         public DbSet<JobRequest> jobrequests { get; set; }
         public DbSet<JobApply> jobapply { get; set; }
         public DbSet<UsersRooms> usersrooms { get; set; }
+        public DbSet<Advertisement> advertisements { get; set; }
+        public DbSet<Ticket> tickets { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

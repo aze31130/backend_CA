@@ -14,6 +14,7 @@ namespace backend_CA.Services
         void banUser(int userId);
         void forgiveUser(int userId);
         void deleteUser(int userId);
+        void answerTicket(int ticketId, string answer);
     }
     
     public class AdminService : IAdminService
@@ -22,6 +23,29 @@ namespace backend_CA.Services
         public AdminService(Context context)
         {
             _context = context;
+        }
+
+        //-----
+        //Function to update the profile of a user
+        //-----
+        public void answerTicket(int ticketId, string answer)
+        {
+            //Check if the ticket if is valid
+            if (_context.tickets.ToList().Find(x => x.id.Equals(ticketId)) == null)
+            {
+                throw new CustomException("This ticket doesn't exist !");
+            }
+
+            if (string.IsNullOrEmpty(answer))
+            {
+                throw new CustomException("Please, you must provide an answer !");
+            }
+
+            Ticket ticket = _context.tickets.ToList().Find(x => x.id.Equals(ticketId));
+            ticket.answer = answer;
+            ticket.isClosed = true;
+            _context.Entry(ticket).State = EntityState.Modified;
+            _context.SaveChanges();
         }
 
         //-----

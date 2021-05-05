@@ -5,6 +5,8 @@ using backend_CA.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace backend_CA.Controllers
 {
@@ -21,6 +23,32 @@ namespace backend_CA.Controllers
             _context = context;
             _adminService = adminService;
             Configuration = configuration;
+        }
+
+        //-----
+        //Function to get all non answered tickets
+        //-----
+        [HttpPost("GetTicketList")]
+        public ActionResult<IEnumerable<Ticket>> GetTicketList()
+        {
+            return _context.tickets.ToList().FindAll(x => x.isClosed.Equals(false));
+        }
+
+        //-----
+        //Function to answer to a ticket
+        //-----
+        [HttpPost("AnswerTicket")]
+        public ActionResult AnswerTicket(int ticketId, string answer)
+        {
+            try
+            {
+                _adminService.answerTicket(ticketId, answer);
+                return Ok(new { message = "The answer has been successfully recorded !" });
+            }
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
         }
 
         //-----

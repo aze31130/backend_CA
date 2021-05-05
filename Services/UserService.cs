@@ -20,14 +20,112 @@ namespace backend_CA.Services
         User Register(RegisterModel model);
         User GetUserById(int id);
         bool isUserIdValid(int userId);
+        void changeUserPassword(int userId, ChangePasswordModel model);
+        void ForgotPassword(string email);
+        void OpenTicket(int userId, OpenTicketModel model);
     }
 
     public class UserService : IUserService
     {
         private Context _context;
-        public UserService(Context context)
+        private readonly IEmailService _emailService;
+        public UserService(Context context, IEmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
+        }
+
+        //-----
+        //Function to open a ticket
+        //-----
+        public void OpenTicket(int userId, OpenTicketModel model)
+        {
+            if (!isUserIdValid(userId))
+            {
+                throw new CustomException("This user doesn't exist !");
+            }
+
+            //Check if any fields if null
+            if (string.IsNullOrEmpty(model.title) || string.IsNullOrEmpty(model.description))
+            {
+                throw new CustomException("Make sure to fill every fields !");
+            }
+
+            Ticket ticket = new Ticket();
+            ticket.userId = userId;
+            ticket.title = model.title;
+            ticket.description = model.description;
+            ticket.answer = "";
+            ticket.opened = DateTime.UtcNow;
+            ticket.isClosed = false;
+            _context.tickets.Add(ticket);
+            _context.SaveChanges();
+        }
+
+        //-----
+        //Function to resend a password
+        //-----
+        public void ForgotPassword(string email)
+        {
+            if (_context.users.ToList().Find(x => x.email.Equals(email)) == null)
+            {
+                throw new CustomException("The email adress isn't used !");
+            }
+
+            User user = _context.users.ToList().Find(x => x.email.Equals(email));
+            user.password = HashPassword(user.salt, user.salt);
+            _context.SaveChanges();
+
+            var emailAddress = new List<string>() { email };
+            var emailSubject = "Password Recovery";
+            var messageBody = "Your new password is:" + user.salt;
+
+            var response = _emailService.SendEmailAsync(emailAddress, emailSubject, messageBody);
+
+            //Placing the response to make sure the response variable has been created
+            bool respond = response.IsCompletedSuccessfully;
+        }
+
+        //-----
+        //Function to the password of a selfuser
+        //-----
+        public void changeUserPassword(int userId, ChangePasswordModel model)
+        {
+            if (!isUserIdValid(userId))
+            {
+                throw new CustomException("This user doesn't exist !");
+            }
+
+            //Check if any fields if null
+            if (string.IsNullOrEmpty(model.oldPassword) || string.IsNullOrEmpty(model.newPassword)
+                || string.IsNullOrEmpty(model.confirmNewPassword))
+            {
+                throw new CustomException("Make sure to fill every fields !");
+            }
+
+            //Check if the new passwords matches
+            if (!model.newPassword.Equals(model.confirmNewPassword))
+            {
+                throw new CustomException("The password doesn't match !");
+            }
+
+            //Check if the request is smart :)
+            if (model.oldPassword.Equals(model.newPassword) && model.newPassword.Equals(model.confirmNewPassword))
+            {
+                throw new CustomException("Not a smart thing to do !");
+            }
+
+            //Get the hash and the salt from the database
+            User user = GetUserById(userId);
+
+            //Check if the old password is the good one
+            if (!AuthPassword(model.oldPassword, user.password, user.salt))
+            {
+                throw new CustomException("The password is incorrect !");
+            }
+
+            user.password = HashPassword(model.confirmNewPassword, user.salt);
+            _context.SaveChanges();
         }
 
         //-----
@@ -128,7 +226,6 @@ namespace backend_CA.Services
         {
             throw new NotImplementedException();
         }
-
 
         //-----
         //Returns the user object if the given credentials are correct

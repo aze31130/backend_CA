@@ -60,6 +60,7 @@ namespace backend_CA
                     ValidateAudience = false
                 };
             });
+            services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAdminService, AdminService>();
             services.AddScoped<IChatService, ChatService>();
