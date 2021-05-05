@@ -294,6 +294,24 @@ namespace backend_CA.Controllers
         }
 
         //-----
+        //Apply to a Job
+        //-----
+        [HttpPost("apply")]
+        public ActionResult<Job> Apply(int jobId)
+        {
+            int userId = getUserId();
+            try
+            {
+                _userService.Apply(userId, jobId);
+                return Ok(new { message = "you successfully applied to this job" });
+            }
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+        //-----
         //Get a list of all skills for a given user
         //-----
         [HttpGet("GetUserSkills")]

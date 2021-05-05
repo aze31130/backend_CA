@@ -26,6 +26,7 @@ namespace backend_CA.Services
         void PostAd(int userId, AdvertisementModel model);
         void EditAd(int userId, int adId, AdvertisementModel model);
         void DeleteAd(int userId, int adId);
+        JobApply Apply(int userId, int jobId);
 
     }
 
@@ -354,6 +355,24 @@ namespace backend_CA.Services
             _context.users.Add(user);
             _context.SaveChanges();
             return user;
+        }
+
+        public JobApply Apply(int userId, int jobId)
+        {
+            if (_context.users.ToList().Find(x => x.id == userId).type != USER_TYPE.JOB_SEEKER)
+                throw new CustomException("you are not a jobseeker");
+            Job job = _context.jobs.ToList().Find(x => x.id == jobId);
+            if (job == null)
+                throw new CustomException("this job doesn't exists");
+            if (job.availableSlots == 0)
+                throw new CustomException("this job has no available slots left");
+            JobApply jobapply = new JobApply();
+            jobapply.jobId = jobId;
+            jobapply.userId = userId;
+            jobapply.isAccepted = false;
+            _context.jobapply.Add(jobapply);
+            _context.SaveChanges();
+            return jobapply;
         }
 
         //-----
