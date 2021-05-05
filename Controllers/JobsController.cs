@@ -79,12 +79,20 @@ namespace backend_CA.Controllers
         }
 
         //-----
-        //Apply to a Job
+        //Function to choose a given 
         //-----
-        [HttpPost("apply")]
-        public  ActionResult<Job> Apply()
+        [HttpPost("Choose")]
+        public ActionResult<Job> Choose(int jobApplyId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                _jobService.Choose(GetUserId(), jobApplyId);
+                return Ok(new { message = "Successfully choosed job: " + jobApplyId });
+            }
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
         }
 
         //-----

@@ -11,6 +11,7 @@ namespace backend_CA.Services
         void Create(CreateJobModel model, int userId);
         void Edit(CreateJobModel model, int userId, int jobId);
         void Delete(int userId, int jobId);
+        void Choose(int userId, int jobRequestId);
     }
 
     public class JobService : IJobService
@@ -74,6 +75,50 @@ namespace backend_CA.Services
                 throw new CustomException("you can't delete this job");
 
             _context.jobs.Remove(removedjob);
+            _context.SaveChanges();
+        }
+
+        public void Choose(int userId, int jobRequestId)
+        {
+            Job j = _context.jobs.ToList().Find(x => x.id.Equals(jobRequestId));
+            
+            //Check if the jobRequest exists
+            if (j == null)
+            {
+                throw new CustomException("This job request doesn't exist !");
+            }
+
+            //Check if the employer owns the job request
+            if (j.employerId != userId)
+            {
+                throw new CustomException("You do not own this job request !");
+            }
+
+            //Decrease the available slots
+            j.availableSlots--;
+
+            if (j.availableSlots <= 0)
+            {
+                //Delete the entry
+                _context.jobs.Remove(j);
+
+                //Delete every job request with this id
+                foreach (JobApply ja in _context.jobapply.ToList())
+                {
+                    if (ja.jobId.Equals(jobRequestId))
+                    {
+                        _context.jobapply.Remove(ja);
+                    }
+                }
+            }
+            else
+            {
+                //Get the request and set isAccepted to true
+                JobApply ja = _context.jobapply.ToList().Find(x => x.jobId.Equals(jobRequestId));
+                ja.isAccepted = true;
+                _context.Entry(ja).State = EntityState.Modified;
+            }
+
             _context.SaveChanges();
         }
 

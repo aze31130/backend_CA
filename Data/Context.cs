@@ -12,7 +12,6 @@ namespace backend_CA.Data
         public DbSet<Message> messages { get; set; }
         public DbSet<Skill> skills { get; set; }
         public DbSet<Job> jobs { get; set; }
-        public DbSet<JobRequest> jobrequests { get; set; }
         public DbSet<JobApply> jobapply { get; set; }
         public DbSet<UsersRooms> usersrooms { get; set; }
         public DbSet<Advertisement> advertisements { get; set; }
