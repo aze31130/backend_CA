@@ -35,6 +35,57 @@ namespace backend_CA.Controllers
         }
 
         //-----
+        //Function to post an advertisement
+        //-----
+        [HttpPost("PostAdvertisement")]
+        public ActionResult PostAdvertisement(AdvertisementModel model)
+        {
+            try
+            {
+                _userService.PostAd(getUserId(), model);
+                return Ok(new { message = "Successfully posted ad : " + model.title });
+            }
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+        //-----
+        //Function to edit an advertisement
+        //-----
+        [HttpPut("EditAdvertisement")]
+        public ActionResult EditAdvertisement(int adId, AdvertisementModel model)
+        {
+            try
+            {
+                _userService.EditAd(getUserId(), adId, model);
+                return Ok(new { message = "Successfully edited ad : " + adId });
+            }
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+        //-----
+        //Function to edit an advertisement
+        //-----
+        [HttpDelete("DeleteAdvertisement")]
+        public ActionResult DeleteAdvertisement(int adId)
+        {
+            try
+            {
+                _userService.DeleteAd(getUserId(), adId);
+                return Ok(new { message = "Successfully deleted ad :" + adId });
+            }
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+        //-----
         //Function to open a ticket
         //-----
         [HttpPost("OpenTicket")]

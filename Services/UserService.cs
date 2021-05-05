@@ -23,6 +23,10 @@ namespace backend_CA.Services
         void changeUserPassword(int userId, ChangePasswordModel model);
         void ForgotPassword(string email);
         void OpenTicket(int userId, OpenTicketModel model);
+        void PostAd(int userId, AdvertisementModel model);
+        void EditAd(int userId, int adId, AdvertisementModel model);
+        void DeleteAd(int userId, int adId);
+
     }
 
     public class UserService : IUserService
@@ -33,6 +37,68 @@ namespace backend_CA.Services
         {
             _context = context;
             _emailService = emailService;
+        }
+
+
+        //-----
+        //Function to post an advertisement
+        //-----
+        public void PostAd(int userId, AdvertisementModel model)
+        {
+            //Check if any fields if null
+            if (string.IsNullOrEmpty(model.title) || string.IsNullOrEmpty(model.description))
+            {
+                throw new CustomException("Make sure to fill every fields !");
+            }
+
+            Advertisement ad = new Advertisement();
+            ad.userId = userId;
+            ad.title = model.title;
+            ad.description = model.description;
+            ad.posted = DateTime.UtcNow;
+            ad.isBanned = false;
+
+            _context.advertisements.Add(ad);
+            _context.SaveChanges();
+        }
+
+        //-----
+        //Function to edit an advertisement
+        //-----
+        public void EditAd(int userId, int adId, AdvertisementModel model)
+        {
+            //Check if the post exists
+            if (_context.advertisements.ToList().Find(x => x.id.Equals(adId)) == null)
+            {
+                throw new CustomException("This post doesn't exist !");
+            }
+            //Check if the user has the permission to edit this post
+            if (_context.advertisements.ToList().Find(x => x.id.Equals(adId) && x.userId.Equals(userId)) == null)
+            {
+                throw new CustomException("You cannot edit this post !");
+            }
+
+            Advertisement ad = _context.advertisements.ToList().Find(x => x.id.Equals(adId) && x.userId.Equals(userId));
+            ad.title = model.title;
+            ad.description = model.description;
+            ad.posted = DateTime.UtcNow;
+            _context.Entry(ad).State = EntityState.Modified;
+            _context.SaveChanges();
+        }
+
+        //-----
+        //Function to delete an advertisement
+        //-----
+        public void DeleteAd(int userId, int adId)
+        {
+            //Check if the user has the permission to edit this post
+            if (_context.advertisements.ToList().Find(x => x.id.Equals(adId) && x.userId.Equals(userId)) == null)
+            {
+                throw new CustomException("You cannot delete this post !");
+            }
+            Advertisement ad = _context.advertisements.ToList().Find(x => x.id.Equals(adId) && x.userId.Equals(userId));
+            _context.advertisements.Remove(ad);
+            _context.SaveChanges();
         }
 
         //-----
