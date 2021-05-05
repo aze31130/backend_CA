@@ -13,6 +13,8 @@ namespace backend_CA.Services
         bool isUserIdValid(int userId);
         void banUser(int userId);
         void forgiveUser(int userId);
+        void banAd(int adId);
+        void forgiveAd(int adId);
         void deleteUser(int userId);
         void answerTicket(int ticketId, string answer);
     }
@@ -23,6 +25,40 @@ namespace backend_CA.Services
         public AdminService(Context context)
         {
             _context = context;
+        }
+
+        //-----
+        //Function to ban an ad
+        //-----
+        public void banAd(int adId)
+        {
+            if (_context.advertisements.ToList().Find(x => x.id.Equals(adId)) == null)
+            {
+                throw new CustomException("This ad doesn't exist !");
+            }
+
+            //Get the ad
+            Advertisement ad = _context.advertisements.ToList().Find(x => x.id.Equals(adId));
+            ad.isBanned = true;
+            _context.Entry(ad).State = EntityState.Modified;
+            _context.SaveChanges();
+        }
+
+        //-----
+        //Function to forgive an ad
+        //-----
+        public void forgiveAd(int adId)
+        {
+            if (_context.advertisements.ToList().Find(x => x.id.Equals(adId)) == null)
+            {
+                throw new CustomException("This ad doesn't exist !");
+            }
+
+            //Get the ad
+            Advertisement ad = _context.advertisements.ToList().Find(x => x.id.Equals(adId));
+            ad.isBanned = false;
+            _context.Entry(ad).State = EntityState.Modified;
+            _context.SaveChanges();
         }
 
         //-----

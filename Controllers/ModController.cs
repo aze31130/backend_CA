@@ -24,9 +24,44 @@ namespace backend_CA.Controllers
         }
 
         //-----
+        //Bans an ad
+        //-----
+        [HttpPost("BanAd")]
+        public ActionResult BanAd(int adId)
+        {
+            try
+            {
+                _adminService.banAd(adId);
+                return Ok(new { message = "Successfully banned ad " + adId });
+            }
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+        //-----
+        //Forgives an ad
+        //-----
+        [HttpPost("ForgiveAd")]
+        public ActionResult ForgiveAd(int adId)
+        {
+            try
+            {
+                _adminService.forgiveAd(adId);
+                return Ok(new { message = "Successfully forgave user " + adId });
+            }
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+
+        //-----
         //Bans a user
         //-----
-        [HttpPost("ban")]
+        [HttpPost("BanUser")]
         public ActionResult BanUser(int userId)
         {
             try
@@ -43,13 +78,13 @@ namespace backend_CA.Controllers
         //-----
         //Forgives a user
         //-----
-        [HttpPost("forgive")]
+        [HttpPost("ForgiveUser")]
         public ActionResult ForgiveUser(int userId)
         {
             try
             {
                 _adminService.forgiveUser(userId);
-                return Ok(new { message = "Successfully banned user " + userId });
+                return Ok(new { message = "Successfully forgave user " + userId });
             }
             catch (CustomException e)
             {

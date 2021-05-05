@@ -35,6 +35,15 @@ namespace backend_CA.Controllers
         }
 
         //-----
+        //Function to get every ads
+        //-----
+        [HttpPost("GetAds")]
+        public ActionResult<IEnumerable<Advertisement>> GetAds()
+        {
+            return _context.advertisements.ToList().FindAll(x => x.isBanned.Equals(false));
+        }
+
+        //-----
         //Function to post an advertisement
         //-----
         [HttpPost("PostAdvertisement")]
