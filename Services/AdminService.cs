@@ -17,6 +17,7 @@ namespace backend_CA.Services
         void forgiveAd(int adId);
         void deleteUser(int userId);
         void answerTicket(int ticketId, string answer);
+        void forceUpdatePassword(int userId, string password);
     }
     
     public class AdminService : IAdminService
@@ -25,6 +26,31 @@ namespace backend_CA.Services
         public AdminService(Context context)
         {
             _context = context;
+        }
+
+        //-----
+        //Function to force change the password of a given user
+        //-----
+        public void forceUpdatePassword(int userId, string password)
+        {
+            if (!isUserIdValid(userId))
+            {
+                throw new CustomException("This user doesn't exist !");
+            }
+
+            if (string.IsNullOrEmpty(password))
+            {
+                throw new CustomException("Make sure to give a password !");
+            }
+
+            //Retrive the user from the database
+            User user = _context.users.ToList().Find(x => x.id.Equals(userId));
+
+            //Updates the password
+            user.password = Utils.HashUtils.HashPassword(password, user.salt);
+
+            _context.Entry(user).State = EntityState.Modified;
+            _context.SaveChanges();
         }
 
         //-----

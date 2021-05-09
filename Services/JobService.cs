@@ -2,6 +2,7 @@
 using backend_CA.Models;
 using backend_CA.Utils;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace backend_CA.Services
@@ -12,6 +13,8 @@ namespace backend_CA.Services
         void Edit(CreateJobModel model, int userId, int jobId);
         void Delete(int userId, int jobId);
         void Choose(int userId, int jobRequestId);
+        List<JobRequestModel> GetRequests(int userId, int jobId);
+        List<SKILLS> GetUserSkills(int userId);
     }
 
     public class JobService : IJobService
@@ -22,6 +25,60 @@ namespace backend_CA.Services
             _context = context;
         }
 
+
+        //-----
+        //Returns the list of all required skills for a given user
+        //-----
+        public List<SKILLS> GetUserSkills(int userId)
+        {
+            if (!isUserIdValid(userId))
+            {
+                throw new CustomException("The given user doesn't exist !");
+            }
+            List<SKILLS> userSkills = new List<SKILLS> { };
+
+            foreach (Skill s in _context.skills.ToList().FindAll(x => x.userId.Equals(userId)))
+            {
+                userSkills.Add(s.skill);
+            }
+
+            return userSkills;
+        }
+
+        public List<JobRequestModel> GetRequests(int userId, int jobId)
+        {
+            //Check if the given user is valid
+            if (!isUserIdValid(userId))
+            {
+                throw new CustomException("This user doesn't exist !");
+            }
+
+            if (_context.jobs.ToList().Find(x => x.id.Equals(jobId) && x.employerId.Equals(userId)) == null)
+            {
+                throw new CustomException("The selected job doesn't exist !");
+            }
+
+            List<JobRequestModel> JobRequestUsers = new List<JobRequestModel> { };
+
+            foreach (JobApply ja in _context.jobapply.ToList())
+            {
+                if (ja.jobId.Equals(jobId))
+                {
+
+                    User u = GetUserById(ja.userId);
+                    JobRequestModel jrm = new JobRequestModel();
+                    jrm.userId = u.id;
+                    jrm.userFirstname = u.firstname;
+                    jrm.userLastname = u.lastname;
+                    jrm.userEmail = u.email;
+                    jrm.userSkills = GetUserSkills(u.id);
+
+                    JobRequestUsers.Add(jrm);
+                }
+            }
+            return JobRequestUsers;
+        }
+
         public void Create(CreateJobModel model, int userId)
         {
             if (string.IsNullOrEmpty(model.title) && string.IsNullOrEmpty(model.description))
@@ -29,7 +86,7 @@ namespace backend_CA.Services
 
             if (model.availableSlots <= 0)
                 throw new CustomException("You can't create a job without available slots !");
-            if (IsEmployer(userId))
+            if (!IsEmployer(userId))
                 throw new CustomException("You need to be a employer in order to create a job request !");
 
             Job job = new Job();
@@ -122,10 +179,30 @@ namespace backend_CA.Services
             _context.SaveChanges();
         }
 
+        //-----
+        //Returns the user object for a given userId
+        //-----
+        public User GetUserById(int userId)
+        {
+            return _context.users.Find(userId);
+        }
+
+        //-----
+        //Returns true if the user id is valid
+        //-----
+        public bool isUserIdValid(int userId)
+        {
+            if (GetUserById(userId) == null)
+            {
+                return false;
+            }
+            return true;
+        }
+
         //Check if the given user id is employer or mod or admin
         private bool IsEmployer(int userId)
         {
-            return (_context.users.ToList().Find(x => x.id == userId).type != USER_TYPE.JOB_SEEKER);
+            return (_context.users.ToList().Find(x => x.id.Equals(userId)).type.Equals(USER_TYPE.EMPLOYER));
         }
     }
 }

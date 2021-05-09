@@ -138,7 +138,7 @@ namespace backend_CA.Controllers
         {
             try
             {
-                _userService.Register(model);
+                _userService.Register(getUserId(), model);
                 return Ok(new { message = "Account successfully registered !" });
             }
             catch (CustomException e)
@@ -299,10 +299,9 @@ namespace backend_CA.Controllers
         [HttpPost("apply")]
         public ActionResult<Job> Apply(int jobId)
         {
-            int userId = getUserId();
             try
             {
-                _userService.Apply(userId, jobId);
+                _userService.Apply(getUserId(), jobId);
                 return Ok(new { message = "you successfully applied to this job" });
             }
             catch (CustomException e)
@@ -328,16 +327,32 @@ namespace backend_CA.Controllers
         }
 
         //-----
+        //List all available Jobs
+        //-----
+        [HttpPost("GetAvailableJobs")]
+        public ActionResult<IEnumerable<Job>> GetAllAvailableJobs()
+        {
+            return _context.jobs.ToList().FindAll(x => x.availableSlots > 0);
+        }
+
+        //-----
         //Returns the id of the currently logged account
         //-----
         private int getUserId()
         {
-            int userId = int.Parse(User.Identity.Name);
-            if (_userService.isUserIdValid(userId))
+            try
             {
-                return userId;
+                int userId = int.Parse(User.Identity.Name);
+                if (_userService.isUserIdValid(userId))
+                {
+                    return userId;
+                }
+                return -1;
             }
-            return -1;
+            catch (Exception)
+            {
+                return -1;
+            }
         }
     }
 }

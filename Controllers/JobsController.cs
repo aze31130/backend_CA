@@ -4,9 +4,7 @@ using backend_CA.Services;
 using backend_CA.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace backend_CA.Controllers
 {
@@ -79,7 +77,23 @@ namespace backend_CA.Controllers
         }
 
         //-----
-        //Function to choose a given 
+        //List every job request for a given job
+        //-----
+        [HttpPost("GetAllRequests")]
+        public ActionResult<IEnumerable<JobRequestModel>> GetAllRequests(int jobId)
+        {
+            try
+            {
+                return _jobService.GetRequests(GetUserId(), jobId);
+            }
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+        //-----
+        //Choose a specific person from a job
         //-----
         [HttpPost("Choose")]
         public ActionResult<Job> Choose(int jobApplyId)
@@ -93,22 +107,6 @@ namespace backend_CA.Controllers
             {
                 return BadRequest(new { message = e.Message });
             }
-        }
-
-        //-----
-        //List all Jobs
-        //-----
-        [HttpPost("get_all_available_jobs")]
-        public  ActionResult<IEnumerable<Job>> GetAllAvailableJobs()
-        {
-            List<Job> Jobslist = _context.jobs.ToList();
-            List<Job> aviablejobs = new List<Job> { };
-            foreach (Job currentjob in Jobslist)
-            {
-                if (currentjob.availableSlots != 0)
-                    aviablejobs.Add(currentjob);
-            }
-            return aviablejobs;
         }
 
         private int GetUserId()

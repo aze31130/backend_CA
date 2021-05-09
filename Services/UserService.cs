@@ -17,7 +17,7 @@ namespace backend_CA.Services
         List<SKILLS> GetUserSkills(int userId);
         List<SKILLS> getRequiredSkills(int jobId);
         User Authenticate(string username, string password);
-        User Register(RegisterModel model);
+        User Register(int userId, RegisterModel model);
         User GetUserById(int id);
         bool isUserIdValid(int userId);
         void changeUserPassword(int userId, ChangePasswordModel model);
@@ -325,7 +325,7 @@ namespace backend_CA.Services
         //-----
         //Registers a new user in the dabase
         //-----
-        public User Register(RegisterModel model)
+        public User Register(int userId, RegisterModel model)
         {
             if (string.IsNullOrEmpty(model.password))
             {
@@ -335,6 +335,27 @@ namespace backend_CA.Services
             if (_context.users.Any(x => x.username.Equals(model.username)))
             {
                 throw new CustomException("Username " + model.username + " is already taken");
+            }
+
+            //Check if the request is to create an admin / mod user
+            if (model.type.Equals(USER_TYPE.ADMIN) || model.type.Equals(USER_TYPE.MOD))
+            {
+                //If no one is logged
+                if (userId < 0)
+                {
+                    throw new CustomException("You cannot create an admin account !");
+                }
+
+                //Get the user and check if it is an admin user
+                if (!isUserIdValid(userId))
+                {
+                    throw new CustomException("This user id doesn't exist !");
+                }
+
+                if (!GetUserById(userId).type.Equals(USER_TYPE.ADMIN))
+                {
+                    throw new CustomException("Only an admin can create an admin account !");
+                }
             }
 
             //Create the user object

@@ -68,6 +68,25 @@ namespace backend_CA.Controllers
             }
         }
 
+
+        //-----
+        //Function to change the password of any user
+        //-----
+        [HttpPut("ForceChangeUser")]
+        public ActionResult ForceChangeUser(int userId, string newPassword)
+        {
+            try
+            {
+                _adminService.forceUpdatePassword(userId, newPassword);
+                return Ok(new { message = "Profile successfully updated !" });
+            }
+            catch (CustomException e)
+            {
+                return BadRequest(new { message = e.Message });
+            }
+        }
+
+
         //-----
         //Function to hard delete a user
         //-----
