@@ -277,7 +277,6 @@ namespace backend_CA.Services
             //Find and remove the skill
             foreach (Skill s in _context.skills.ToList().FindAll(x => x.userId.Equals(userId)))
             {
-                Console.WriteLine(s.id);
                 if (s.skill.Equals(skill))
                 {
                     _context.skills.Remove(s);
